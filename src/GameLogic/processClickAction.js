@@ -23,6 +23,8 @@ export function processClickAction({
   modalWindGameOver,
   botThinking,
   undoSnapshots,
+  botColor,
+  gameId,
 }) {
   if (isCheckMate.value || isDraw.value) {
     return;
@@ -113,7 +115,7 @@ export function processClickAction({
       //game over
       return;
     }
-    startBotMove(
+    startBotMove({
       botThinking,
       boardData,
       currentTurn,
@@ -123,7 +125,9 @@ export function processClickAction({
       isDraw,
       winner,
       modalWindGameOver,
-    );
+      botColor,
+      gameId,
+    });
     console.log("try move");
   }
 

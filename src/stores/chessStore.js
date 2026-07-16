@@ -30,8 +30,10 @@ export const useChessStore = defineStore("chess", () => {
   const gameStarted = ref(false);
   const botThinking = ref(false);
   const undoSnapshots = ref([]);
+  const gameId = ref(0);
 
   function startNewGame() {
+    gameId.value++;
     boardData.value = initialBoard();
     activeFigureSquareId.value = null;
     currentTurn.value = "white";
@@ -59,7 +61,7 @@ export const useChessStore = defineStore("chess", () => {
     botColor.value = playerColor.value === "white" ? "black" : "white";
 
     if (botColor.value === currentTurn.value) {
-      startBotMove(
+      startBotMove({
         botThinking,
         boardData,
         currentTurn,
@@ -70,7 +72,9 @@ export const useChessStore = defineStore("chess", () => {
         winner,
         modalWindGameOver,
         undoSnapshots,
-      );
+        botColor,
+        gameId,
+      });
     }
   }
   function completePawnPromotion(nameFigure) {
@@ -94,7 +98,7 @@ export const useChessStore = defineStore("chess", () => {
       modalWindGameOver.value = true;
       return;
     }
-    startBotMove(
+    startBotMove({
       botThinking,
       boardData,
       currentTurn,
@@ -104,7 +108,10 @@ export const useChessStore = defineStore("chess", () => {
       isDraw,
       winner,
       modalWindGameOver,
-    );
+      botColor,
+      botMoveTimeoutId,
+      gameId,
+    });
   }
   function setPenultimateMove() {
     if (undoSnapshots.value.length > 0) {
@@ -140,6 +147,8 @@ export const useChessStore = defineStore("chess", () => {
         modalWindGameOver,
         botThinking,
         undoSnapshots,
+        botColor,
+        gameId,
       });
     }
     if (action === "start-drag") {

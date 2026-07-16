@@ -4,7 +4,7 @@ import { verifyKingForCheck } from "@/GameRules/isKingInCheck";
 import { checkDraw } from "@/GameRules/draw";
 import { checkingCheckMate } from "@/GameRules/checkMate";
 
-export function startBotMove(
+export function startBotMove({
   botThinking,
   boardData,
   currentTurn,
@@ -14,16 +14,42 @@ export function startBotMove(
   isDraw,
   winner,
   modalWindGameOver,
-) {
+  botColor,
+  botMoveTimeoutId,
+  gameId,
+}) {
   botThinking.value = true;
-
+  const scheduledGameId = gameId.value;
   setTimeout(() => {
-    doBotMove(boardData, currentTurn, isKingInCheck, moveHistory, isCheckMate, isDraw, winner, modalWindGameOver);
+    if (scheduledGameId !== gameId.value) {
+      return;
+    }
+    doBotMove(
+      boardData,
+      currentTurn,
+      isKingInCheck,
+      moveHistory,
+      isCheckMate,
+      isDraw,
+      winner,
+      modalWindGameOver,
+      botColor,
+    );
 
     botThinking.value = false;
   }, 2000);
 }
-function doBotMove(boardData, currentTurn, isKingInCheck, moveHistory, isCheckMate, isDraw, winner, modalWindGameOver) {
+function doBotMove(
+  boardData,
+  currentTurn,
+  isKingInCheck,
+  moveHistory,
+  isCheckMate,
+  isDraw,
+  winner,
+  modalWindGameOver,
+  botColor,
+) {
   const figures = boardData.value.filter((square) => square.colorFigure === currentTurn.value);
 
   const dataFigures = [];
