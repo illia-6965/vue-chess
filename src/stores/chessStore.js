@@ -109,7 +109,7 @@ export const useChessStore = defineStore("chess", () => {
       winner,
       modalWindGameOver,
       botColor,
-      botMoveTimeoutId,
+
       gameId,
     });
   }

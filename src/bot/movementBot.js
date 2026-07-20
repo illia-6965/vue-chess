@@ -15,7 +15,7 @@ export function startBotMove({
   winner,
   modalWindGameOver,
   botColor,
-  botMoveTimeoutId,
+
   gameId,
 }) {
   botThinking.value = true;
