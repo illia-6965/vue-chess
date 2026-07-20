@@ -1,4 +1,4 @@
-import { kingCheckRules } from "@/GameRules/kingCheckRules";
+import { kingCheckRules } from "@/GameLogic/kingCheckRules";
 export function executeCastle(source, target, boardData) {
   const castleOptions = getCastleOptions(boardData, source);
 

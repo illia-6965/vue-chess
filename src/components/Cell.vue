@@ -2,15 +2,23 @@
   <div
     class="cell"
     :style="{ backgroundColor: squareData.colorCell }"
-    @click="emitCellAction({ action: 'click', squareId: squareData.id })"
+    @click="emitCellAction(squareData.id)"
     :class="{
       'active-figure': activeFigureId === squareData.id,
       'king-in-check': currentTurn === squareData.colorFigure && squareData.nameFigure === 'king' && isKingInCheck,
     }"
+    :data-square-id="squareData.id"
   >
     <div class="cell-indication" v-show="squareData.indication"></div>
 
-    <div draggable="true" v-if="squareData.nameFigure" @dragstart="startDrag($event, squareData)">
+    <div
+      v-if="squareData.nameFigure"
+      class="wrapper-icon"
+      @pointerdown="startDrag($event, squareData.id)"
+      @pointermove="moveDrag"
+      @pointerup="stopDrag"
+      @pointercancel="stopDrag"
+    >
       <font-awesome-icon
         :icon="figureIcon"
         :class="rotateFigure"
@@ -18,6 +26,20 @@
         :style="{ color: squareData.colorFigure }"
       />
     </div>
+
+    <font-awesome-icon
+      v-if="drag.active"
+      :icon="figureIcon"
+      :class="rotateFigure"
+      :style="{
+        color: squareData.colorFigure,
+        left: `${drag.x}px`,
+        top: `${drag.y}px`,
+        transform: 'translate(-50%, -50%)',
+      }"
+      class="dragged-icon"
+    />
+
     <pawn-promotion
       v-if="pawnPromotion.permission && pawnPromotion.targetId === squareData.id"
       :colorFigure="pawnPromotion.colorFigure"
@@ -32,7 +54,16 @@ import PawnPromotion from "@/components/PawnPromotion";
 export default {
   components: { PawnPromotion },
   data() {
-    return {};
+    return {
+      drag: {
+        active: false,
+        moved: false,
+        startX: 0,
+        startY: 0,
+        x: 0,
+        y: 0,
+      },
+    };
   },
 
   computed: {
@@ -51,12 +82,7 @@ export default {
       return this.playerColor === "black" ? "custom-icon-black" : "";
     },
     rotatePromotion() {
-      if (this.playerColor === "white") {
-        return "promotion-white";
-      }
-      if (this.playerColor === "black") {
-        return "promotion-black";
-      }
+      return this.playerColor === "white" ? "promotion-white" : "promotion-black";
     },
   },
   props: {
@@ -84,30 +110,58 @@ export default {
     emitPawnPromotionFigure(nameFigure) {
       this.$emit("pawnPromotionFigure", nameFigure);
     },
-    emitCellAction(payload) {
-      // console.log(action, squareId, "destruct");
-      //     this.$emit('update:indicationMoves', !this.indicationMoves)
-
+    emitCellAction(id) {
+      if (this.ignoreNextClick) {
+        this.ignoreNextClick = false;
+        return;
+      }
+      const payload = {
+        action: "click",
+        squareId: id,
+      };
       this.$emit("cellAction", payload);
     },
-    onDragOver(evt, id) {
-      evt.preventDefault();
-      // console.log(id, 'id')
-    },
-    startDrag(evt, figure) {
-      if (figure.nameFigure) {
-        evt.dataTransfer.dropEffect = "move";
-        evt.dataTransfer.effectAllowed = "move";
-        evt.dataTransfer.setData("dragId", figure.id);
+    startDrag(event, id) {
+      this.drag.active = true;
+      const payload = {
+        action: "start-drag",
+        squareId: id,
+      };
+      this.$emit("cellAction", payload);
+      this.drag.x = event.clientX;
+      this.drag.y = event.clientY;
 
-        //     this.$emit('update:indicationMoves', true)
-        this.$emit("dragId", figure.id, "dragEvent");
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+
+    moveDrag(event) {
+      if (!this.drag.active) return;
+      if (Math.abs(event.clientX - this.drag.startX) > 5 || Math.abs(event.clientY - this.drag.startY) > 5) {
+        this.drag.moved = true;
       }
+      this.drag.x = event.clientX;
+      this.drag.y = event.clientY;
     },
-    onDrop(evt, dropId) {
-      const dragId = evt.dataTransfer.getData("dragId");
 
-      this.$emit("dropId", { dragId, dropId });
+    stopDrag(event) {
+      if (this.drag.moved) {
+        this.ignoreNextClick = true;
+        const elementUnderMouse = document.elementFromPoint(event.clientX, event.clientY);
+
+        const targetSquare = elementUnderMouse?.closest("[data-square-id]");
+
+        const payload = {
+          action: "drop",
+          squareId: targetSquare.dataset.squareId,
+        };
+        this.$emit("cellAction", payload);
+        this.drag.active = false;
+
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+        // тут emit drop
+      }
     },
   },
 };
@@ -162,5 +216,25 @@ export default {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 255, 68, 0.336);
+}
+.dragged-icon {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+
+  pointer-events: none;
+  background: transparent;
+  font-size: 50px; /* Set your desired font size */
+  stroke: black;
+  stroke-width: 20px;
+  paint-order: stroke;
+}
+.wrapper-icon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

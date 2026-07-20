@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { initialBoard } from "@/initialBoard";
 import { processClickAction } from "@/GameLogic/processClickAction";
+import { processDragAction } from "@/GameLogic/processDragAction";
 import { verifyKingForCheck } from "@/GameRules/isKingInCheck";
 import { checkingCheckMate } from "@/GameRules/checkMate";
 import { checkDraw } from "@/GameRules/draw";
@@ -109,7 +110,7 @@ export const useChessStore = defineStore("chess", () => {
       winner,
       modalWindGameOver,
       botColor,
-      botMoveTimeoutId,
+
       gameId,
     });
   }
@@ -126,12 +127,13 @@ export const useChessStore = defineStore("chess", () => {
       isDraw.value = boardState.isDraw;
       winner.value = boardState.winner;
     } else {
-      console.log("array length is less than 0");
+      console.log("array length is less than 1");
     }
   }
   function processPlayerAction({ action, squareId }) {
-    if (action === "click" && currentTurn.value === playerColor.value) {
+    if (action === "click" && currentTurn.value === playerColor.value && !winner) {
       gameStarted.value = true;
+      console.log("click");
       processClickAction({
         squareId,
         currentTurn,
@@ -152,8 +154,21 @@ export const useChessStore = defineStore("chess", () => {
       });
     }
     if (action === "start-drag") {
+      processDragAction({
+        squareId,
+        currentTurn,
+        boardData,
+        activeFigureSquareId,
+        availableMovesId,
+        isKingInCheck,
+        moveHistory,
+      });
+      console.log("start drag");
+      return;
     }
     if (action === "drop") {
+      console.log("drop");
+      return;
     }
   }
   return {

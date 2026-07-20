@@ -1,4 +1,4 @@
-import { kingCheckRules } from "@/GameRules/kingCheckRules";
+import { kingCheckRules } from "@/GameLogic/kingCheckRules";
 
 export function verifyKingForCheck(boardData, currentTurn) {
   const king = boardData.find((square) => square.nameFigure === "king" && square.colorFigure === currentTurn);
